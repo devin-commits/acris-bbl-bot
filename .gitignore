@@ -1,0 +1,9 @@
+node_modules
+dist
+dist-gemini
+data
+tmp
+knowledge
+eng.traineddata
+*.log
+.env
