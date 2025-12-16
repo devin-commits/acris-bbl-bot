@@ -3,7 +3,6 @@
 echo "=== GitHub Authentication & Repository Status ==="
 echo ""
 
-# Check if git is installed
 if ! command -v git &> /dev/null; then
     echo "❌ Git is not installed. Please install Git first."
     exit 1
@@ -17,7 +16,6 @@ echo "Local user.name: $(git config --local user.name 2>/dev/null || echo 'Not s
 echo "Local user.email: $(git config --local user.email 2>/dev/null || echo 'Not set')"
 echo ""
 
-# Check if this is a git repository
 if [ -d ".git" ]; then
     echo "✅ This is a Git repository"
     echo ""
@@ -35,7 +33,6 @@ else
     echo ""
 fi
 
-# Check GitHub CLI
 echo "🔐 GitHub CLI Status:"
 echo "-------------------"
 if command -v gh &> /dev/null; then
@@ -46,7 +43,6 @@ else
 fi
 echo ""
 
-# Check credential helper
 echo "🔑 Credential Helper:"
 echo "-------------------"
 git config --global credential.helper 2>/dev/null || echo "No credential helper configured"
@@ -72,4 +68,3 @@ echo "4. Or use Personal Access Token:"
 echo "   - Create token at: https://github.com/settings/tokens"
 echo "   - Use it when pushing/pulling"
 echo ""
-

@@ -6,7 +6,6 @@ const path = require('path');
 
 console.log('=== GitHub Authentication & Repository Status ===\n');
 
-// Helper to run commands safely
 function runCommand(cmd, defaultValue = 'Not set') {
   try {
     return execSync(cmd, { encoding: 'utf-8', stdio: 'pipe' }).trim();
@@ -15,7 +14,6 @@ function runCommand(cmd, defaultValue = 'Not set') {
   }
 }
 
-// Check if git is installed
 try {
   execSync('git --version', { stdio: 'ignore' });
 } catch (e) {
@@ -31,7 +29,6 @@ console.log(`Local user.name: ${runCommand('git config --local user.name')}`);
 console.log(`Local user.email: ${runCommand('git config --local user.email')}`);
 console.log('');
 
-// Check if this is a git repository
 const gitDir = path.join(process.cwd(), '.git');
 if (fs.existsSync(gitDir)) {
   console.log('✅ This is a Git repository\n');
@@ -51,7 +48,6 @@ if (fs.existsSync(gitDir)) {
   console.log('⚠️  This directory is not a Git repository\n');
 }
 
-// Check GitHub CLI
 console.log('🔐 GitHub CLI Status:');
 console.log('-------------------');
 try {
@@ -64,7 +60,6 @@ try {
 }
 console.log('');
 
-// Check credential helper
 console.log('🔑 Credential Helper:');
 console.log('-------------------');
 const credentialHelper = runCommand('git config --global credential.helper', 'No credential helper configured');
@@ -89,4 +84,3 @@ console.log('4. Or use Personal Access Token:');
 console.log('   - Create token at: https://github.com/settings/tokens');
 console.log('   - Use it when pushing/pulling');
 console.log('');
-
