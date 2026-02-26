@@ -185,7 +185,7 @@ export default function HomePage() {
       <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="pill mb-3 w-fit bg-slate-900/80 text-xs text-slate-300">
-            Manhattan · Rent Stabilized · Strategy Tool
+            Manhattan · At or below 96th St · Rent Stabilized
           </p>
           <h1 className="text-balance text-3xl font-semibold tracking-tight text-slate-50 sm:text-4xl lg:text-5xl">
             Find rent‑stabilized apartments in Manhattan like it&apos;s your job.
@@ -473,14 +473,21 @@ export default function HomePage() {
               className="flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-100 shadow-lg shadow-slate-950/40"
             >
               <div>
-                <a
-                  href={listing.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="line-clamp-2 text-sm font-semibold text-slate-50 hover:text-brand-300"
-                >
-                  {listing.title}
-                </a>
+                <div className="flex items-center gap-2">
+                  <a
+                    href={listing.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="line-clamp-2 text-sm font-semibold text-slate-50 hover:text-brand-300"
+                  >
+                    {listing.title}
+                  </a>
+                  {listing.isNew && (
+                    <span className="shrink-0 rounded bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-300">
+                      New
+                    </span>
+                  )}
+                </div>
                 <p className="mt-2 line-clamp-3 text-xs text-slate-300">{listing.snippet}</p>
               </div>
               <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
