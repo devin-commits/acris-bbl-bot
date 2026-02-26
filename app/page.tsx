@@ -19,6 +19,7 @@ type Listing = {
   source: string;
   priceHint?: string;
   neighborhoodHint?: string;
+  isNew?: boolean;
 };
 
 type SearchFormState = {
@@ -41,6 +42,8 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<Listing[]>([]);
   const [saved, setSaved] = useState<Listing[]>([]);
+  const [keepSearching, setKeepSearching] = useState(false);
+  const [nextSearchIn, setNextSearchIn] = useState<number | null>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -86,8 +89,9 @@ export default function HomePage() {
     return '';
   }, [form.neighborhood]);
 
-  async function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
+  const POLL_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+
+  async function runSearch(merge: boolean) {
     setIsSearching(true);
     setError(null);
     try {
@@ -101,7 +105,27 @@ export default function HomePage() {
         throw new Error(text || 'Search failed');
       }
       const data = (await res.json()) as { listings: Listing[] };
-      setResults(data.listings);
+      const next = data.listings.map((l) => ({ ...l, id: l.url }));
+
+      if (merge) {
+        setResults((prev) => {
+          const prevByUrl = new Map(prev.map((p) => [p.url, p]));
+          const newListings: Listing[] = [];
+          const fromThisRun: Listing[] = [];
+          next.forEach((l) => {
+            const entry = { ...l, id: l.url };
+            if (!prevByUrl.has(l.url)) {
+              newListings.push({ ...entry, isNew: true });
+            } else {
+              fromThisRun.push(entry);
+            }
+          });
+          const onlyInPrev = prev.filter((p) => !next.some((n) => n.url === p.url));
+          return [...newListings, ...fromThisRun, ...onlyInPrev];
+        });
+      } else {
+        setResults(next);
+      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Something went wrong';
       setError(
@@ -111,8 +135,36 @@ export default function HomePage() {
       );
     } finally {
       setIsSearching(false);
+      if (merge) setNextSearchIn(POLL_INTERVAL_MS / 1000);
     }
   }
+
+  async function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    await runSearch(false);
+  }
+
+  // Auto-refresh when "Keep searching" is on
+  useEffect(() => {
+    if (!keepSearching) {
+      setNextSearchIn(null);
+      return;
+    }
+    setNextSearchIn(POLL_INTERVAL_MS / 1000);
+    const run = () => runSearch(true);
+    run(); // run once immediately when toggled on
+    const interval = setInterval(run, POLL_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [keepSearching]);
+
+  // Countdown for next auto-search
+  useEffect(() => {
+    if (nextSearchIn === null || nextSearchIn <= 0) return;
+    const t = setInterval(() => {
+      setNextSearchIn((n) => (n === null || n <= 1 ? null : n - 1));
+    }, 1000);
+    return () => clearInterval(t);
+  }, [keepSearching, nextSearchIn]);
 
   function toggleSave(listing: Listing) {
     setSaved((prev) => {
@@ -280,18 +332,43 @@ export default function HomePage() {
               </div>
             )}
 
-            <div className="flex items-center justify-between gap-4 pt-1">
-              <button
-                type="submit"
-                className="btn-primary"
-                disabled={isSearching}
-              >
-                {isSearching ? 'Scanning listings…' : 'Scan the web for leads'}
-              </button>
-              <p className="hidden text-[11px] text-slate-500 sm:block">
-                Uses a search API to look across major listing sites. Always confirm legal
-                stabilization via rent history with NYS HCR.
-              </p>
+            <div className="flex flex-col gap-3 pt-1">
+              <div className="flex items-center justify-between gap-4">
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  disabled={isSearching}
+                >
+                  {isSearching ? 'Scanning listings…' : 'Scan the web for leads'}
+                </button>
+                <p className="hidden text-[11px] text-slate-500 sm:block">
+                  Uses a search API to look across major listing sites. Always confirm legal
+                  stabilization via rent history with NYS HCR.
+                </p>
+              </div>
+              <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-2.5">
+                <input
+                  type="checkbox"
+                  checked={keepSearching}
+                  onChange={(e) => setKeepSearching(e.target.checked)}
+                  className="h-4 w-4 rounded border-slate-600 bg-slate-900 text-brand-500 focus:ring-brand-500"
+                />
+                <span className="text-sm font-medium text-slate-200">
+                  Keep searching
+                </span>
+                <span className="text-xs text-slate-400">
+                  Run search every 5 min and add new listings until you find the one. Only shows at or below 96th St.
+                </span>
+              </label>
+              {keepSearching && (
+                <p className="text-[11px] text-slate-400">
+                  {isSearching
+                    ? 'Scanning…'
+                    : nextSearchIn != null
+                      ? `Next scan in ${Math.floor(nextSearchIn / 60)}:${String(nextSearchIn % 60).padStart(2, '0')}`
+                      : 'Idle'}
+                </p>
+              )}
             </div>
           </form>
         </div>

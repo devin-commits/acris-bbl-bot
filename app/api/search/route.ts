@@ -49,6 +49,9 @@ function buildQuery(payload: SearchFormState): string {
     '-"list of" -"best apartments" -"top 10" -"neighborhood guide" -"rental guide" -"how to find" -"apartments for rent in" -inventory -"see all" -"browse"'
   );
 
+  // Only at or below 96th Street (exclude Washington Heights, Inwood, Hamilton Heights)
+  terms.push('-"Washington Heights" -"Inwood" -"Hamilton Heights"');
+
   const sites =
     "(site:streeteasy.com OR site:apartments.com OR site:zillow.com OR site:renthop.com OR site:cityrealty.com)";
 
@@ -175,6 +178,21 @@ function isLikelySingleListing(
   }
 }
 
+/** Exclude listings that are clearly above 96th Street (only show at or below 96th). */
+function isAtOrBelow96th(title: string, snippet: string): boolean {
+  const lower = `${title} ${snippet}`.toLowerCase();
+  const neighborhoodsAbove96 = [
+    "washington heights",
+    "inwood",
+    "hamilton heights",
+  ];
+  if (neighborhoodsAbove96.some((n) => lower.includes(n))) return false;
+  // Street numbers above 96: 97th–220th (Manhattan grid)
+  const streetAbove96 = /\b(9[7-9]|[1-2]\d{2})\s*(?:st|street|th)\b/i;
+  if (streetAbove96.test(lower)) return false;
+  return true;
+}
+
 export async function POST(req: NextRequest) {
   const apiKey = process.env.SERP_API_KEY;
   if (!apiKey) {
@@ -239,6 +257,7 @@ export async function POST(req: NextRequest) {
           "";
 
         if (!isLikelySingleListing(title, snippet, url)) return null;
+        if (!isAtOrBelow96th(title, snippet)) return null;
 
         const combinedText = `${title} ${snippet}`;
 
