@@ -1,0 +1,31 @@
+@import "tailwindcss";
+@config "../tailwind.config.ts";
+
+@layer base {
+  body {
+    @apply bg-slate-950 text-slate-50 antialiased;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-slate-800 bg-slate-900/70 shadow-xl shadow-slate-900/40 backdrop-blur-sm;
+  }
+
+  .pill {
+    @apply inline-flex items-center rounded-full border border-slate-700 bg-slate-900/80 px-3 py-1 text-xs font-medium text-slate-200;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-full bg-brand-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-brand-500/40 transition hover:bg-brand-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center rounded-full border border-slate-700/70 bg-slate-900/60 px-3 py-1.5 text-xs font-medium text-slate-200 transition hover:border-slate-500 hover:bg-slate-900;
+  }
+
+  .input {
+    @apply w-full rounded-xl border border-slate-800 bg-slate-900/70 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 shadow-inner shadow-slate-950 focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-500;
+  }
+}
+
